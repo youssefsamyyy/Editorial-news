@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AQN Editorial Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'aqn-red': '#E31E24',
+              'aqn-dark': '#0A0A0A',
+              'aqn-gray': '#1A1A1A'
+            }
+          }
+        }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      body {
+        background: #0A0A0A;
+        color: white;
+        font-family: Inter, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+      .fade-in {
+        animation: fadeIn 0.25s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <section id="loginPage" class="min-h-screen bg-aqn-dark flex items-center justify-center p-6">
+        <div class="w-full max-w-md bg-aqn-gray p-8 rounded-3xl border border-white/10 shadow-2xl fade-in">
+          <div class="flex flex-col items-center mb-8">
+            <img
+              src="https://alqaheranews.net/_next/static/media/logo.6a2665e0.png"
+              alt="AQN Logo"
+              class="h-32 w-auto object-contain mb-8"
+              referrerpolicy="no-referrer"
+            />
+            <h1 id="loginTitle" class="text-2xl font-bold tracking-tight"></h1>
+            <p class="text-white/40 text-sm mt-2 text-center">Access the AQN Editorial Intelligence Portal</p>
+          </div>
+
+          <form id="loginForm" class="space-y-6">
+            <div class="space-y-2">
+              <label id="usernameLabel" class="text-xs font-bold uppercase tracking-widest text-white/40 px-1"></label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/20">👤</span>
+                <input
+                  id="usernameInput"
+                  type="text"
+                  class="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-aqn-red transition-all"
+                  placeholder="admin"
+                />
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label id="passwordLabel" class="text-xs font-bold uppercase tracking-widest text-white/40 px-1"></label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/20">🔒</span>
+                <input
+                  id="passwordInput"
+                  type="password"
+                  class="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-aqn-red transition-all"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <button
+              id="loginBtn"
+              type="submit"
+              class="w-full bg-aqn-red text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all group"
+            ></button>
+          </form>
+        </div>
+      </section>
+
+      <section id="portalPage" class="hidden h-screen flex flex-col bg-aqn-dark overflow-hidden">
+        <div class="h-1 w-full bg-aqn-red/20 relative z-50">
+          <div class="h-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse" style="width: 100%"></div>
+        </div>
+
+        <header class="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-black/40 backdrop-blur-2xl z-20">
+          <div class="flex items-center gap-6">
+            <div class="relative group">
+              <div class="absolute inset-0 bg-white/10 blur-xl rounded-full opacity-50"></div>
+              <img
+                src="https://alqaheranews.net/_next/static/media/logo.6a2665e0.png"
+                alt="AQN Logo"
+                class="h-10 w-auto object-contain relative z-10"
+                referrerpolicy="no-referrer"
+              />
+            </div>
+            <div class="h-6 w-px bg-white/10"></div>
+            <div class="flex flex-col">
+              <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-aqn-red">Editorial Portal</span>
+              <div class="flex items-center gap-2 text-[10px] font-mono text-white/40">
+                <span>⏰</span>
+                <span id="currentTime"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-6">
+            <button id="langToggleBtn" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors">
+              <span>🌐</span>
+              <span id="langToggleText"></span>
+            </button>
+
+            <div class="flex items-center gap-2 relative">
+              <button id="statusToggleBtn" class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 hover:bg-white/10 transition-all">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span id="systemStatusLabel" class="text-[10px] uppercase tracking-widest font-bold"></span>
+                <span id="statusChevron" class="text-xs transition-transform">⌄</span>
+              </button>
+
+              <div id="statusDropdown" class="hidden absolute top-full right-0 mt-2 w-64 bg-aqn-gray border border-white/10 rounded-2xl p-4 shadow-2xl z-50 backdrop-blur-xl fade-in">
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <span id="operationalLabel" class="text-[10px] font-bold uppercase tracking-widest text-white/40"></span>
+                    <span class="text-green-500">✔</span>
+                  </div>
+                  <div class="h-px bg-white/5"></div>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <span id="latencyLabel" class="text-[8px] font-bold uppercase tracking-widest text-white/20 block mb-1"></span>
+                      <span class="text-xs font-mono text-aqn-red">42ms</span>
+                    </div>
+                    <div>
+                      <span id="uptimeLabel" class="text-[8px] font-bold uppercase tracking-widest text-white/20 block mb-1"></span>
+                      <span class="text-xs font-mono text-green-500">99.9%</span>
+                    </div>
+                  </div>
+                  <div class="pt-2">
+                    <div class="flex items-center justify-between text-[8px] font-bold uppercase tracking-widest text-white/20 mb-1">
+                      <span>API Usage</span>
+                      <span>2.4k / 10k</span>
+                    </div>
+                    <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                      <div class="h-full bg-aqn-red w-[24%]"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button id="logoutBtn" class="flex items-center gap-2 text-white/40 hover:text-aqn-red transition-colors text-xs font-bold uppercase tracking-widest">
+              <span>↩</span>
+              <span id="logoutLabel"></span>
+            </button>
+          </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden">
+          <aside class="w-80 border-r border-white/5 flex flex-col bg-aqn-gray/10">
+            <div class="p-6 border-b border-white/5 bg-black/20">
+              <button id="addArticleBtn" class="w-full mb-6 bg-aqn-red text-white py-3 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all shadow-lg shadow-aqn-red/20">
+                <span>＋</span>
+                <span id="addArticleLabel"></span>
+              </button>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Live Wires</span>
+                <div class="flex items-center gap-2">
+                  <div class="w-1.5 h-1.5 bg-aqn-red rounded-full animate-pulse"></div>
+                  <span class="text-[9px] font-mono text-aqn-red">Real-time</span>
+                </div>
+              </div>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/20">🔍</span>
+                <input id="wireFilterInput" type="text" placeholder="Filter sources..." class="w-full bg-white/5 border border-white/10 rounded-lg py-2 pl-9 pr-4 text-xs focus:outline-none focus:border-aqn-red/50 transition-all font-mono" />
+              </div>
+            </div>
+            <div id="wiresList" class="flex-1 overflow-y-auto no-scrollbar"></div>
+          </aside>
+
+          <main class="flex-1 flex flex-col overflow-hidden bg-aqn-dark">
+            <div class="flex border-b border-white/5 px-8 bg-black/20">
+              <button data-tab="draft" class="tab-btn flex items-center gap-3 px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] transition-all relative"></button>
+              <button data-tab="search" class="tab-btn flex items-center gap-3 px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] transition-all relative"></button>
+              <button data-tab="agents" class="tab-btn flex items-center gap-3 px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] transition-all relative"></button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-12 no-scrollbar">
+              <div id="draftTab" class="tab-panel max-w-5xl mx-auto space-y-12"></div>
+              <div id="searchTab" class="tab-panel hidden max-w-4xl mx-auto space-y-8"></div>
+              <div id="agentsTab" class="tab-panel hidden max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
+          </main>
+
+          <aside class="w-80 border-l border-white/5 flex flex-col bg-aqn-gray/20">
+            <div class="p-6 border-b border-white/5">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">AI Visual Assistance</h3>
+              <div class="space-y-4">
+                <div class="aspect-video bg-white/5 rounded-xl border border-dashed border-white/10 flex flex-col items-center justify-center text-white/20 cursor-pointer hover:bg-white/10 transition-all">
+                  <div class="text-2xl mb-2">🖼</div>
+                  <span class="text-[10px] font-bold uppercase tracking-widest">Generate Thumbnail</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6 border-t border-white/5 mt-auto">
+              <button id="publishBtn" class="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 bg-aqn-red text-white hover:bg-white hover:text-black"></button>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const translations = {
+        en: {
+          appName: 'AQN Editorial Portal',
+          editorialPortal: 'Editorial Portal',
+          editorsLogin: 'Editors Login',
+          login: 'Login',
+          username: 'Username',
+          password: 'Password',
+          logout: 'Logout',
+          aiDrafting: 'AI Drafting',
+          semanticArchive: 'Semantic Archive',
+          agentStatus: 'Agent Status',
+          summarize: 'Summarize',
+          refineStyle: 'Refine Style',
+          generateHeadline: 'Generate Headline',
+          approveDraft: 'Approve Draft',
+          editManually: 'Edit Manually',
+          publish: 'Publish to All Channels',
+          publishSuccess: 'Published Successfully',
+          publishing: 'Publishing...',
+          language: 'Language',
+          arabic: 'العربية',
+          english: 'English',
+          addNewArticle: 'Add New Article',
+          modify: 'Modify',
+          systemStatus: 'System Status',
+          operational: 'Operational',
+          latency: 'Latency',
+          uptime: 'Uptime',
+          saveDraft: 'Save Draft',
+          deleteDraft: 'Delete Draft',
+        },
+        ar: {
+          appName: 'بوابة التحرير - القاهرة الإخبارية',
+          editorialPortal: 'بوابة التحرير',
+          editorsLogin: 'دخول المحررين',
+          login: 'تسجيل الدخول',
+          username: 'اسم المستخدم',
+          password: 'كلمة المرور',
+          logout: 'تسجيل الخروج',
+          aiDrafting: 'التأليف الذكي',
+          semanticArchive: 'الأرشيف الدلالي',
+          agentStatus: 'حالة الوكلاء',
+          summarize: 'تلخيص',
+          refineStyle: 'تحسين الأسلوب',
+          generateHeadline: 'توليد عنوان',
+          approveDraft: 'اعتماد المسودة',
+          editManually: 'تعديل يدوي',
+          publish: 'نشر في جميع القنوات',
+          publishSuccess: 'تم النشر بنجاح',
+          publishing: 'جاري النشر...',
+          language: 'اللغة',
+          arabic: 'العربية',
+          english: 'English',
+          addNewArticle: 'إضافة مقال جديد',
+          modify: 'تعديل',
+          systemStatus: 'حالة النظام',
+          operational: 'يعمل بكفاءة',
+          latency: 'زمن الاستجابة',
+          uptime: 'وقت التشغيل',
+          saveDraft: 'حفظ المسودة',
+          deleteDraft: 'حذف المسودة',
+        }
+      };
+
+      const MOCK_WIRES = [
+        {
+          id: 1,
+          source: 'Reuters',
+          title: {
+            en: 'Regional summit opens with focus on trade and energy coordination.',
+            ar: 'انطلاق قمة إقليمية تركّز على تنسيق التجارة والطاقة.'
+          },
+          timestamp: new Date().toISOString(),
+          category: 'Politics',
+          content: 'Leaders gathered today to discuss cross-border trade facilitation, energy security, and new mechanisms for regional coordination. Officials described the summit as a strategic opportunity to align priorities ahead of the next quarter.'
+        },
+        {
+          id: 2,
+          source: 'AP',
+          title: {
+            en: 'Markets react to infrastructure package and updated fiscal forecasts.',
+            ar: 'الأسواق تتفاعل مع حزمة البنية التحتية وتحديثات التوقعات المالية.'
+          },
+          timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+          category: 'Economy',
+          content: 'Analysts said the package may improve long-term productivity, while investors continue to assess budget implications and implementation timelines.'
+        },
+        {
+          id: 3,
+          source: 'AFP',
+          title: {
+            en: 'Technology forum highlights newsroom automation and AI-assisted workflows.',
+            ar: 'منتدى تقني يسلّط الضوء على أتمتة غرف الأخبار وسير العمل المدعوم بالذكاء الاصطناعي.'
+          },
+          timestamp: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
+          category: 'Technology',
+          content: 'Speakers at the forum emphasized the importance of human oversight, editorial standards, and multilingual AI tooling for modern media organizations.'
+        }
+      ];
+
+      const AGENTS = [
+        { id: 'scout', name: 'Scout Agent', status: 'Monitoring', color: 'text-blue-400' },
+        { id: 'context', name: 'Context Agent', status: 'Idle', color: 'text-purple-400' },
+        { id: 'writer', name: 'Writer Agent', status: 'Drafting', color: 'text-green-400' },
+      ];
+
+      const state = {
+        isAuthenticated: false,
+        lang: 'ar',
+        wires: [...MOCK_WIRES],
+        selectedWire: MOCK_WIRES[0],
+        draft: '',
+        isProcessing: false,
+        activeTab: 'draft',
+        searchQuery: '',
+        isPublishing: false,
+        publishSuccess: false,
+        isEditing: false,
+        showStatus: false
+      };
+
+      function t(key) {
+        return translations[state.lang]?.[key] || translations.en[key] || key;
+      }
+
+      function cn(...classes) {
+        return classes.filter(Boolean).join(' ');
+      }
+
+      function renderApp() {
+        document.documentElement.lang = state.lang;
+        document.documentElement.dir = state.lang === 'ar' ? 'rtl' : 'ltr';
+
+        document.getElementById('loginPage').classList.toggle('hidden', state.isAuthenticated);
+        document.getElementById('portalPage').classList.toggle('hidden', !state.isAuthenticated);
+
+        applyTranslations();
+        updateClock();
+        renderTabs();
+        renderWires();
+        renderDraftTab();
+        renderSearchTab();
+        renderAgentsTab();
+        renderPublishButton();
+        renderStatusDropdown();
+      }
+
+      function applyTranslations() {
+        document.title = t('appName');
+        document.getElementById('loginTitle').textContent = t('editorsLogin');
+        document.getElementById('usernameLabel').textContent = t('username');
+        document.getElementById('passwordLabel').textContent = t('password');
+        document.getElementById('loginBtn').innerHTML = `${t('login')} <span class="${state.lang === 'ar' ? 'rotate-180 inline-block' : ''}">➜</span>`;
+        document.getElementById('langToggleText').textContent = state.lang === 'ar' ? 'English' : 'العربية';
+        document.getElementById('systemStatusLabel').textContent = t('systemStatus');
+        document.getElementById('operationalLabel').textContent = t('operational');
+        document.getElementById('latencyLabel').textContent = t('latency');
+        document.getElementById('uptimeLabel').textContent = t('uptime');
+        document.getElementById('logoutLabel').textContent = t('logout');
+        document.getElementById('addArticleLabel').textContent = t('addNewArticle');
+      }
+
+      function updateClock() {
+        document.getElementById('currentTime').textContent = new Date().toLocaleTimeString(state.lang === 'ar' ? 'ar-EG' : 'en-US');
+      }
+
+      function renderStatusDropdown() {
+        document.getElementById('statusDropdown').classList.toggle('hidden', !state.showStatus);
+        document.getElementById('statusChevron').classList.toggle('rotate-180', state.showStatus);
+      }
+
+      function renderTabs() {
+        const buttons = document.querySelectorAll('.tab-btn');
+        const labels = {
+          draft: `✨ ${t('aiDrafting')}`,
+          search: `🕘 ${t('semanticArchive')}`,
+          agents: `🤖 ${t('agentStatus')}`,
+        };
+
+        buttons.forEach(btn => {
+          const tab = btn.dataset.tab;
+          btn.innerHTML = `${labels[tab]}${state.activeTab === tab ? '<div class="absolute bottom-0 left-0 right-0 h-0.5 bg-aqn-red"></div>' : ''}`;
+          btn.className = cn(
+            'tab-btn flex items-center gap-3 px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] transition-all relative',
+            state.activeTab === tab ? 'text-white' : 'text-white/30 hover:text-white'
+          );
+        });
+
+        document.getElementById('draftTab').classList.toggle('hidden', state.activeTab !== 'draft');
+        document.getElementById('searchTab').classList.toggle('hidden', state.activeTab !== 'search');
+        document.getElementById('agentsTab').classList.toggle('hidden', state.activeTab !== 'agents');
+      }
+
+      function renderWires() {
+        const filter = document.getElementById('wireFilterInput').value.trim().toLowerCase();
+        const list = document.getElementById('wiresList');
+        const visibleWires = state.wires.filter(w => {
+          const text = `${w.source} ${w.category} ${w.title.en} ${w.title.ar}`.toLowerCase();
+          return text.includes(filter);
+        });
+
+        list.innerHTML = visibleWires.map(wire => `
+          <button
+            class="w-full p-6 text-left border-b border-white/5 transition-all hover:bg-white/5 group relative ${state.selectedWire?.id === wire.id ? 'bg-aqn-red/5' : ''}"
+            onclick="selectWire(${wire.id})"
+          >
+            ${state.selectedWire?.id === wire.id ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-aqn-red"></div>' : ''}
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-aqn-red bg-aqn-red/10 px-2 py-0.5 rounded">${wire.source}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[9px] font-mono text-white/20">${new Date(wire.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                <span onclick="deleteWire(event, ${wire.id})" class="opacity-0 group-hover:opacity-100 p-1 hover:text-aqn-red transition-all">🗑</span>
+              </div>
+            </div>
+            <h3 class="text-xs font-medium leading-relaxed mb-3 group-hover:text-white transition-colors">${wire.title[state.lang]}</h3>
+            <div class="flex items-center gap-3">
+              <span class="text-[9px] font-mono text-white/30 uppercase tracking-widest">${wire.category}</span>
+              <div class="h-px flex-1 bg-white/5"></div>
+            </div>
+          </button>
+        `).join('');
+      }
+
+      function renderDraftTab() {
+        const container = document.getElementById('draftTab');
+        const wire = state.selectedWire;
+        container.innerHTML = `
+          <div class="bg-aqn-gray/20 rounded-3xl p-10 border border-white/5 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-aqn-red/5 blur-3xl rounded-full"></div>
+            <div class="flex items-center justify-between mb-8 gap-4 flex-wrap">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">📰</div>
+                <div>
+                  <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 block mb-1">Source Analysis</span>
+                  <h4 class="text-xs font-mono text-aqn-red">${wire?.source || 'Manual'} • ${wire?.category || 'Draft'}</h4>
+                </div>
+              </div>
+              <div class="flex gap-3 flex-wrap">
+                <button onclick="handleAIAction('summary')" ${state.isProcessing ? 'disabled' : ''} class="flex items-center gap-2 bg-aqn-red text-white px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 shadow-lg shadow-aqn-red/20">✨ ${t('summarize')}</button>
+                <button onclick="handleAIAction('headline')" ${state.isProcessing ? 'disabled' : ''} class="flex items-center gap-2 bg-white/5 text-white/60 px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10 disabled:opacity-50">⚡ ${t('generateHeadline')}</button>
+                <button onclick="handleAIAction('refine')" ${state.isProcessing ? 'disabled' : ''} class="flex items-center gap-2 bg-white/5 text-white/60 px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10 disabled:opacity-50">✍ ${t('refineStyle')}</button>
+              </div>
+            </div>
+            <h2 class="text-4xl font-bold mb-6 leading-tight tracking-tighter">${wire?.title?.[state.lang] || ''}</h2>
+            <p class="text-lg text-white/40 leading-relaxed font-light">${wire?.content || 'Wire content loading from premium feed...'}</p>
+          </div>
+
+          <div class="space-y-6">
+            <div class="flex items-center justify-between px-2">
+              <div class="flex items-center gap-3">
+                <span class="text-aqn-red">🤖</span>
+                <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">AI Editorial Draft</h3>
+              </div>
+              ${state.isProcessing ? '<div class="flex items-center gap-3 text-aqn-red text-[10px] font-mono uppercase tracking-widest">⟳ Processing...</div>' : ''}
+            </div>
+            <div class="min-h-[400px] bg-aqn-gray/10 rounded-[2rem] p-12 border border-white/5 relative group transition-all hover:border-white/10">
+              ${renderDraftContent()}
+              ${renderDraftActions()}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderDraftContent() {
+        if (state.isEditing) {
+          return `
+            <textarea id="draftTextarea" oninput="updateDraft(this.value)" class="w-full h-full min-h-[400px] bg-transparent text-xl font-light leading-relaxed focus:outline-none resize-none no-scrollbar" placeholder="Start drafting your article here..." dir="${state.lang === 'ar' ? 'rtl' : 'ltr'}">${escapeHtml(state.draft)}</textarea>
+          `;
+        }
+
+        if (state.draft) {
+          return `<div class="prose prose-invert max-w-none prose-p:text-xl prose-p:font-light prose-p:leading-relaxed" id="draftPreview">${marked.parse(state.draft)}</div>`;
+        }
+
+        return `
+          <div class="h-full flex flex-col items-center justify-center text-white/10 space-y-6 py-20">
+            <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center border border-white/5 animate-pulse text-3xl">🤖</div>
+            <p class="text-[10px] font-bold uppercase tracking-[0.3em]">Awaiting Editorial Input</p>
+          </div>
+        `;
+      }
+
+      function renderDraftActions() {
+        if (!state.draft) return '';
+
+        if (state.isEditing) {
+          return `
+            <div class="absolute bottom-10 right-10 flex gap-4 opacity-100 transition-all">
+              <button onclick="deleteDraft()" class="bg-white/5 backdrop-blur-xl px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-aqn-red hover:text-white transition-all border border-white/10 flex items-center gap-2">🗑 ${t('deleteDraft')}</button>
+              <button onclick="saveDraft()" class="bg-aqn-red text-white px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center gap-2 shadow-2xl">✔ ${t('saveDraft')}</button>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="absolute bottom-10 right-10 flex gap-4 opacity-100 transition-all flex-wrap">
+            <button onclick="handlePublish()" ${state.isPublishing ? 'disabled' : ''} class="bg-white text-black px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-aqn-red hover:text-white transition-all flex items-center gap-2 shadow-2xl disabled:opacity-50">${state.isPublishing ? '⟳' : '✔'} ${t('approveDraft')}</button>
+            <button onclick="deleteDraft()" class="bg-white/5 backdrop-blur-xl px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-aqn-red hover:text-white transition-all border border-white/10 flex items-center gap-2">🗑 ${t('deleteDraft')}</button>
+            <button onclick="enableEdit()" class="bg-white/5 backdrop-blur-xl px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10 flex items-center gap-2">✎ ${t('modify')}</button>
+          </div>
+        `;
+      }
+
+      function renderSearchTab() {
+        const container = document.getElementById('searchTab');
+        const matches = state.searchQuery
+          ? [1, 2, 3].map(i => ({
+              title: state.lang === 'ar'
+                ? 'تحليل تاريخي للاستقرار الإقليمي وتأثيره على التجارة.'
+                : 'Historical analysis of regional stability and its impact on trade.',
+              time: '12:45',
+              score: '98% Match'
+            }))
+          : [];
+
+        container.innerHTML = `
+          <div class="bg-aqn-gray/30 p-12 rounded-3xl border border-white/5 text-center space-y-6">
+            <div class="mx-auto text-aqn-red opacity-50 text-5xl">🕘</div>
+            <h2 class="text-3xl font-bold">${t('semanticArchive')}</h2>
+            <p class="text-white/40 max-w-lg mx-auto">Search the AQN archive by meaning, not just keywords. Retrieve historical context, video segments, and previous coverage instantly.</p>
+            <div class="relative max-w-xl mx-auto">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/20">🔍</span>
+              <input id="searchInput" type="text" value="${escapeHtml(state.searchQuery)}" oninput="updateSearchQuery(this.value)" placeholder="e.g., Historical coverage of regional trade agreements in the 90s" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-lg focus:outline-none focus:border-aqn-red transition-all" />
+            </div>
+          </div>
+
+          ${matches.length ? `
+            <div class="space-y-4 fade-in">
+              <h3 class="text-[10px] font-bold uppercase tracking-widest text-white/20">Semantic Matches</h3>
+              ${matches.map(item => `
+                <div class="bg-white/5 p-6 rounded-xl border border-white/5 hover:border-white/10 transition-all cursor-pointer group">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-[9px] font-bold uppercase tracking-widest text-aqn-red">Archive • Video</span>
+                    <span class="text-[9px] font-mono text-white/20">Oct 12, 2023</span>
+                  </div>
+                  <h4 class="text-sm font-medium group-hover:text-aqn-red transition-colors">${item.title}</h4>
+                  <div class="mt-3 flex items-center gap-4">
+                    <div class="flex items-center gap-1 text-[9px] text-white/40">⏰ ${item.time}</div>
+                    <div class="flex items-center gap-1 text-[9px] text-white/40">⚡ ${item.score}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        `;
+      }
+
+      function renderAgentsTab() {
+        const container = document.getElementById('agentsTab');
+        container.innerHTML = AGENTS.map(agent => {
+          const load = Math.floor(Math.random() * 30) + 10;
+          const bgColor = agent.color.replace('text-', 'bg-');
+          const desc = agent.id === 'scout'
+            ? 'global wire feeds'
+            : agent.id === 'context'
+            ? 'archive databases'
+            : 'editorial drafts';
+
+          return `
+            <div class="bg-aqn-gray/30 p-8 rounded-2xl border border-white/5 space-y-6 group hover:border-aqn-red/30 transition-all fade-in">
+              <div class="flex items-center justify-between">
+                <div class="p-3 rounded-xl bg-white/5 ${agent.color} text-2xl">🤖</div>
+                <div class="flex items-center gap-2 bg-green-500/10 text-green-500 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">
+                  <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                  ${agent.status}
+                </div>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold mb-2 group-hover:text-aqn-red transition-colors">${agent.name}</h3>
+                <p class="text-sm text-white/40 leading-relaxed font-light">Autonomous agent monitoring ${desc} for real-time intelligence.</p>
+              </div>
+              <div class="pt-4 border-t border-white/5">
+                <div class="flex items-center justify-between text-[9px] font-mono text-white/20 mb-2">
+                  <span>Load</span>
+                  <span>${load}%</span>
+                </div>
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                  <div class="h-full ${bgColor}" style="width:${load}%"></div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderPublishButton() {
+        const btn = document.getElementById('publishBtn');
+        btn.disabled = !state.draft || state.isPublishing;
+
+        if (state.isPublishing) {
+          btn.className = 'w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 bg-aqn-red text-white';
+          btn.innerHTML = `⟳ ${t('publishing')}`;
+          return;
+        }
+
+        if (state.publishSuccess) {
+          btn.className = 'w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 bg-green-600 text-white';
+          btn.innerHTML = `✔ ${t('publishSuccess')}`;
+          return;
+        }
+
+        btn.className = 'w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 bg-aqn-red text-white hover:bg-white hover:text-black';
+        btn.innerHTML = `➤ ${t('publish')}`;
+      }
+
+      async function handleAIAction(action) {
+        const textToProcess = state.selectedWire
+          ? `${state.selectedWire.title[state.lang]}\n\n${state.selectedWire.content || ''}`
+          : state.draft;
+
+        if (!textToProcess || textToProcess.trim().length < 10) return;
+
+        state.isProcessing = true;
+        renderApp();
+
+        await delay(700);
+
+        if (action === 'summary') {
+          state.draft = state.lang === 'ar'
+            ? `### ملخص تحريري\n\n${state.selectedWire?.title.ar || ''}\n\nيقدم الخبر قراءة موجزة تركز على أبرز التطورات والسياق العام، مع إبراز الأبعاد السياسية والاقتصادية ذات الصلة.`
+            : `### Editorial Summary\n\n${state.selectedWire?.title.en || ''}\n\nThis story highlights the main developments, adds concise context, and presents the editorial angle in a polished newsroom tone.`;
+        }
+
+        if (action === 'headline') {
+          state.draft = state.lang === 'ar'
+            ? `### عناوين مقترحة\n\n1. قمة إقليمية تبحث أولويات التجارة والطاقة\n2. تحركات جديدة لتعزيز التنسيق الاقتصادي في المنطقة\n3. قادة المنطقة يناقشون آليات تعاون أوسع`
+            : `### Suggested Headlines\n\n1. Regional summit puts trade and energy coordination in focus\n2. Leaders push for broader economic alignment at high-level meeting\n3. New talks aim to strengthen regional cooperation on key priorities`;
+        }
+
+        if (action === 'refine') {
+          state.draft = state.lang === 'ar'
+            ? `### صياغة محسّنة\n\nشهدت القمة الإقليمية نقاشات موسعة بشأن تنسيق ملفات التجارة والطاقة، وسط تأكيدات رسمية على أهمية بناء آليات تعاون أكثر فاعلية خلال المرحلة المقبلة.`
+            : `### Refined Draft\n\nThe regional summit featured expanded discussions on trade and energy coordination, with officials emphasizing the need for more effective cooperation mechanisms in the period ahead.`;
+        }
+
+        state.isProcessing = false;
+        state.isEditing = false;
+        renderApp();
+      }
+
+      function updateDraft(value) {
+        state.draft = value;
+      }
+
+      function updateSearchQuery(value) {
+        state.searchQuery = value;
+        renderSearchTab();
+      }
+
+      function selectWire(id) {
+        state.selectedWire = state.wires.find(w => w.id === id) || null;
+        renderWires();
+        renderDraftTab();
+      }
+
+      function deleteWire(event, id) {
+        event.stopPropagation();
+        state.wires = state.wires.filter(w => w.id !== id);
+        if (state.selectedWire?.id === id) {
+          state.selectedWire = state.wires[0] || null;
+        }
+        renderWires();
+        renderDraftTab();
+      }
+
+      function enableEdit() {
+        state.isEditing = true;
+        renderDraftTab();
+      }
+
+      function saveDraft() {
+        state.isEditing = false;
+        renderDraftTab();
+        renderPublishButton();
+      }
+
+      function deleteDraft() {
+        state.draft = '';
+        state.isEditing = false;
+        renderDraftTab();
+        renderPublishButton();
+      }
+
+      async function handlePublish() {
+        if (!state.draft) return;
+        state.isPublishing = true;
+        state.publishSuccess = false;
+        renderPublishButton();
+        renderDraftTab();
+
+        await delay(1500);
+
+        state.isPublishing = false;
+        state.publishSuccess = true;
+        renderPublishButton();
+        renderDraftTab();
+
+        setTimeout(() => {
+          state.publishSuccess = false;
+          renderPublishButton();
+        }, 2500);
+      }
+
+      function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+
+      document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('usernameInput').value;
+        const password = document.getElementById('passwordInput').value;
+
+        if (username === 'admin' && password === 'admin') {
+          state.isAuthenticated = true;
+          renderApp();
+        } else {
+          alert('Invalid credentials. Use admin/admin for this POC.');
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        state.isAuthenticated = false;
+        renderApp();
+      });
+
+      document.getElementById('langToggleBtn').addEventListener('click', () => {
+        state.lang = state.lang === 'ar' ? 'en' : 'ar';
+        renderApp();
+      });
+
+      document.getElementById('statusToggleBtn').addEventListener('click', () => {
+        state.showStatus = !state.showStatus;
+        renderStatusDropdown();
+      });
+
+      document.getElementById('wireFilterInput').addEventListener('input', renderWires);
+      document.getElementById('addArticleBtn').addEventListener('click', () => {
+        state.selectedWire = null;
+        state.draft = '';
+        state.isEditing = true;
+        state.activeTab = 'draft';
+        renderApp();
+      });
+
+      document.getElementById('publishBtn').addEventListener('click', handlePublish);
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.activeTab = btn.dataset.tab;
+          renderTabs();
+          renderDraftTab();
+          renderSearchTab();
+          renderAgentsTab();
+        });
+      });
+
+      setInterval(updateClock, 1000);
+      renderApp();
+    </script>
+  </body>
+</html>
